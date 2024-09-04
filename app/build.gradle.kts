@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.dagger.hilt.navigation)
     kapt(libs.dagger.hilt.compiler)
 
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.33.0-alpha")
+
+
     implementation(libs.coil.compose)
 
     implementation(libs.retrofit2.retrofit)

@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -58,7 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.alberto.venture_prueba.R
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun LoginScreen(
     onLogin: () -> Unit,
@@ -67,17 +68,10 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
-    var showErrorDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
             onLogin()
-        }
-    }
-
-    LaunchedEffect(uiState.error) {
-        if (uiState.error != null) {
-            showErrorDialog = true
         }
     }
 
@@ -109,65 +103,31 @@ fun LoginScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            OutlinedTextField(
-                value = uiState.email,
-                onValueChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) },
-                label = { Text("Correo electrónico") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+            EmailField(
+                email = uiState.email,
+                onEmailChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) },
                 isError = uiState.error != null && uiState.email.isEmpty(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedTextColor = Color.Gray,
-                    unfocusedTextColor = Color.Gray,
-                    cursorColor = Color.Gray
-                )
+                focusManager = focusManager
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = uiState.password,
-                onValueChange = { viewModel.onEvent(LoginEvent.PasswordChanged(it)) },
-                label = { Text("Contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine = true,
+            PasswordField(
+                password = uiState.password,
+                onPasswordChange = { viewModel.onEvent(LoginEvent.PasswordChanged(it)) },
+                passwordVisible = passwordVisible,
+                onVisibilityChange = { passwordVisible = !passwordVisible },
                 isError = uiState.error != null && uiState.password.isEmpty(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { viewModel.onEvent(LoginEvent.LoginClicked) }),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedTextColor = Color.Gray,
-                    unfocusedTextColor = Color.Gray,
-                    cursorColor = Color.Gray
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.PlayArrow else Icons.Default.Lock,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
-                    }
-                }
+                onDone = { viewModel.onEvent(LoginEvent.LoginClicked) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = { viewModel.onEvent(LoginEvent.LoginClicked) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0A0FF))
-            ) {
-                Text(text = "Entrar", color = Color.White, fontSize = 16.sp)
-            }
+            LoginButton(onClick = { viewModel.onEvent(LoginEvent.LoginClicked) })
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = { /* TODO: Lógica para crear cuenta */ }) {
+            TextButton(onClick = { /* TODO */ }) {
                 Text(
                     text = "Crear cuenta",
                     fontSize = 16.sp,
@@ -175,63 +135,133 @@ fun LoginScreen(
                 )
             }
 
-            TextButton(onClick = { /* TODO: Lógica para recuperar contraseña */ }) {
+            TextButton(onClick = { /* TODO */ }) {
                 Text(
                     text = "Recuperar contraseña",
                     fontSize = 16.sp,
                     color = Color(0xFFB2B2FF)
                 )
             }
-
         }
 
         if (uiState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
-        if (showErrorDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showErrorDialog = false
-                    viewModel.onEvent(LoginEvent.ErrorDismissed)
-                },
-                title = {
-                    Text(
-                        text = "Aviso",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color.DarkGray,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Text(
-                        text = uiState.error ?: "",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color.Gray
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            showErrorDialog = false
-                            viewModel.onEvent(LoginEvent.ErrorDismissed)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0A0FF))
-                    ) {
-                        Text("Aceptar", color = Color.White)
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = Color.White
+        if (uiState.error != null) {
+            ErrorDialog(
+                errorMessage = uiState.error ?: "",
+                onDismiss = { viewModel.onEvent(LoginEvent.ErrorDismissed) }
             )
         }
-
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EmailField(email: String, onEmailChange: (String) -> Unit, isError: Boolean, focusManager: FocusManager) {
+    OutlinedTextField(
+        value = email,
+        onValueChange = onEmailChange,
+        label = { Text("Correo electrónico") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        isError = isError,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedTextColor = Color.Gray,
+            unfocusedTextColor = Color.Gray,
+            cursorColor = Color.Gray
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PasswordField(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onVisibilityChange: () -> Unit,
+    isError: Boolean,
+    onDone: () -> Unit
+) {
+    OutlinedTextField(
+        value = password,
+        onValueChange = onPasswordChange,
+        label = { Text("Contraseña") },
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        singleLine = true,
+        isError = isError,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onDone() }),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedTextColor = Color.Gray,
+            unfocusedTextColor = Color.Gray,
+            cursorColor = Color.Gray
+        ),
+        trailingIcon = {
+            IconButton(onClick = onVisibilityChange) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Default.PlayArrow else Icons.Default.Lock,
+                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun LoginButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0A0FF))
+    ) {
+        Text(text = "Entrar", color = Color.White, fontSize = 16.sp)
+    }
+}
+
+@Composable
+fun ErrorDialog(errorMessage: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Aviso",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.DarkGray,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                text = errorMessage,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.Gray
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0A0FF))
+            ) {
+                Text("Aceptar", color = Color.White)
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        containerColor = Color.White
+    )
 }

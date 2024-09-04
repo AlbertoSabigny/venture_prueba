@@ -36,10 +36,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,7 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.alberto.venture_prueba.R
-import com.alberto.venture_prueba.auth.data.remote.Empleado
+import com.alberto.venture_prueba.home.data.remote.Empleado
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,182 +70,244 @@ fun EmployeeScreen(viewModel: EmployeeViewModel = hiltViewModel()) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = {
-            Surface(
-                modifier = Modifier
-                    .width((LocalConfiguration.current.screenWidthDp * 0.75).dp)
-                    .fillMaxHeight(),
-                color = Color.White
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) { Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SubcomposeAsyncImage(
-                        model = uiState.foto,
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
-                        loading = {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(60.dp)
-                            )
-                        },
-                        error = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Foto de perfil no disponible",
-                                modifier = Modifier.size(60.dp)
-                            )
-                        }
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = uiState.nombreCompleto,
-                        color = Color.Black,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                    Divider(modifier = Modifier.padding(bottom = 16.dp))
-                    listOf(
-                        MenuItem("Datos de compañía", Icons.Default.Info),
-                        MenuItem("Supervisores", Icons.Default.AccountBox),
-                        MenuItem("Zonas", Icons.Default.Place),
-                        MenuItem("Estaciones", Icons.Default.LocationOn),
-                        MenuItem("Empleados", Icons.Default.Person),
-                        MenuItem("Reportes", Icons.Default.Email),
-                        MenuItem("Historial de auditoría", Icons.Default.DateRange),
-                        MenuItem("Cambiar contraseña", Icons.Default.Lock),
-                        MenuItem("Configuración", Icons.Default.Settings)
-                    ).forEach { item ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable { /* */ },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = item.title,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                    Divider(modifier = Modifier.padding(vertical = 16.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .clickable { /*  */ },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ExitToApp,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "Cerrar sesión",
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        },
+        drawerContent = { DrawerContent(uiState) },
         scrimColor = Color.Black.copy(alpha = 0.32f)
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = Color(0xFFC0A0FF)
-                            )
-                        }
-                    },
-                    actions = {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            SubcomposeAsyncImage(
-                                model = R.drawable.login_prueba,
-                                contentDescription = "Logo",
-                                modifier = Modifier.size(120.dp)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White
-                    )
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { /* TODO */ },
-                    containerColor = Color(0xFFC0A0FF)
-                ) {
-                    Icon(Icons.Filled.Add, "Agregar")
-                }
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .padding(innerPadding)
-            ) {
-                when {
-                    uiState.isLoading -> {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
-                    uiState.error != null -> {
-                        Text(
-                            text = "Error: ${uiState.error}",
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.Black
-                        )
-                    }
-                    uiState.employees != null -> {
-                        LazyColumn {
-                            items(
-                                items = uiState.employees!!,
-                                key = { empleado -> empleado.idEmpleado }
-                            ) { empleado ->
-                                EmployeeItem(empleado)
-                            }
-                        }
-                    }
-                }
+        MainContent(
+            uiState = uiState,
+            onMenuClick = { scope.launch { drawerState.open() } }
+        )
+    }
+}
+
+@Composable
+private fun DrawerContent(uiState: EmployeeUiState) {
+    Surface(
+        modifier = Modifier
+            .width((LocalConfiguration.current.screenWidthDp * 0.75).dp)
+            .fillMaxHeight(),
+        color = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            ProfileHeader(uiState)
+            Divider(modifier = Modifier.padding(bottom = 16.dp))
+            MenuItems()
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+            LogoutButton()
+        }
+    }
+}
+
+@Composable
+private fun ProfileHeader(uiState: EmployeeUiState) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ProfileImage(uiState.foto)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = uiState.nombreCompleto,
+            color = Color.Black,
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
+}
+
+@Composable
+private fun ProfileImage(imageUrl: String) {
+    SubcomposeAsyncImage(
+        model = imageUrl,
+        contentDescription = "Foto de perfil",
+        modifier = Modifier
+            .size(60.dp)
+            .clip(CircleShape),
+        contentScale = ContentScale.Crop,
+        loading = {
+            CircularProgressIndicator(modifier = Modifier.size(60.dp))
+        },
+        error = {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Foto de perfil no disponible",
+                modifier = Modifier.size(60.dp)
+            )
+        }
+    )
+}
+
+@Composable
+private fun MenuItems() {
+    val menuItems = listOf(
+        MenuItem("Datos de compañía", Icons.Default.Info),
+        MenuItem("Supervisores", Icons.Default.AccountBox),
+        MenuItem("Zonas", Icons.Default.Place),
+        MenuItem("Estaciones", Icons.Default.LocationOn),
+        MenuItem("Empleados", Icons.Default.Person),
+        MenuItem("Reportes", Icons.Default.Email),
+        MenuItem("Historial de auditoría", Icons.Default.DateRange),
+        MenuItem("Cambiar contraseña", Icons.Default.Lock),
+        MenuItem("Configuración", Icons.Default.Settings)
+    )
+
+    menuItems.forEach { item ->
+        MenuItem(item)
+    }
+}
+
+@Composable
+private fun MenuItem(item: MenuItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { /*  */ },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = item.icon,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = item.title,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+private fun LogoutButton() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { /*  */ },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.ExitToApp,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = "Cerrar sesión",
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+private fun MainContent(
+    uiState: EmployeeUiState,
+    onMenuClick: () -> Unit
+) {
+    Scaffold(
+        topBar = { TopBar(onMenuClick) },
+        floatingActionButton = { AddButton() }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(innerPadding)
+        ) {
+            when {
+                uiState.isLoading -> LoadingIndicator()
+                uiState.error != null -> ErrorMessage(uiState.error)
+                uiState.employees != null -> EmployeeList(uiState.employees)
             }
         }
     }
 }
 
-data class MenuItem(val title: String, val icon: ImageVector)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar(onMenuClick: () -> Unit) {
+    TopAppBar(
+        title = { },
+        navigationIcon = {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu",
+                    tint = Color(0xFFC0A0FF)
+                )
+            }
+        },
+        actions = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                SubcomposeAsyncImage(
+                    model = R.drawable.login_prueba,
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(120.dp)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.White
+        )
+    )
+}
+
+@Composable
+private fun AddButton() {
+    FloatingActionButton(
+        onClick = { /*  */ },
+        containerColor = Color(0xFFC0A0FF)
+    ) {
+        Icon(Icons.Filled.Add, "Agregar")
+    }
+}
+
+@Composable
+private fun LoadingIndicator() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorMessage(error: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Error: $error",
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+private fun EmployeeList(employees: List<Empleado>) {
+    LazyColumn {
+        items(
+            items = employees,
+            key = { empleado -> empleado.idEmpleado }
+        ) { empleado ->
+            EmployeeItem(empleado)
+        }
+    }
+}
+
 @Composable
 fun EmployeeItem(empleado: Empleado) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -271,3 +330,5 @@ fun EmployeeItem(empleado: Empleado) {
         )
     }
 }
+
+data class MenuItem(val title: String, val icon: ImageVector)

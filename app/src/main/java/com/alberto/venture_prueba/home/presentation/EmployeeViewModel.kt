@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alberto.venture_prueba.auth.data.remote.Empleado
 import com.alberto.venture_prueba.home.domain.usecase.GetEmployeesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,34 +21,28 @@ class EmployeeViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeScreenUiState())
-    val uiState: StateFlow<HomeScreenUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EmployeeUiState())
+    val uiState: StateFlow<EmployeeUiState> = _uiState.asStateFlow()
 
     init {
-        Log.d(TAG, "ViewModel initialized")
         loadUserData()
         loadEmployees()
     }
 
     private fun loadUserData() {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Loading user data")
-            val nombreCompleto = sharedPreferences.getString("nombreCompleto", "") ?: ""
-            val foto = sharedPreferences.getString("foto", "") ?: ""
+            val nombreCompleto = sharedPreferences.getString("nombreCompleto", "").orEmpty()
+            val foto = sharedPreferences.getString("foto", "").orEmpty()
             _uiState.update { it.copy(nombreCompleto = nombreCompleto, foto = foto) }
-            Log.d(TAG, "User data loaded: $nombreCompleto, Foto: $foto")
         }
     }
 
-
     fun loadEmployees() {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Loading employees")
             _uiState.update { it.copy(isLoading = true) }
             try {
                 val result = getEmployeesUseCase()
-                val employees = result.getOrNull()?.empleado ?: emptyList()
-                Log.d(TAG, "Employees loaded. Count: ${employees.size}")
+                val employees = result.getOrNull()?.empleado.orEmpty()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -58,29 +51,12 @@ class EmployeeViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading employees", e)
                 _uiState.update {
                     it.copy(isLoading = false, error = e.message, employees = emptyList())
                 }
             }
         }
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        Log.d(TAG, "ViewModel cleared")
-    }
-
-    companion object {
-        private const val TAG = "EmployeeViewModel"
-    }
 }
 
 
-data class HomeScreenUiState(
-    val isLoading: Boolean = false,
-    val nombreCompleto: String = "",
-    val foto: String = "",
-    val employees: List<Empleado>? = null,
-    val error: String? = null
-)

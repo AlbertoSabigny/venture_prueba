@@ -1,9 +1,9 @@
 package com.alberto.venture_prueba.home.data.repository
 
 import android.content.SharedPreferences
-import com.alberto.venture_prueba.auth.data.remote.ApiService
-import com.alberto.venture_prueba.auth.data.remote.EmpleadoRequest
-import com.alberto.venture_prueba.auth.data.remote.EmpleadoResponse
+import com.alberto.venture_prueba.core.data.remote.ApiService
+import com.alberto.venture_prueba.home.data.remote.EmpleadoRequest
+import com.alberto.venture_prueba.home.data.remote.EmpleadoResponse
 import com.alberto.venture_prueba.home.domain.repository.EmployeeRepository
 import javax.inject.Inject
 

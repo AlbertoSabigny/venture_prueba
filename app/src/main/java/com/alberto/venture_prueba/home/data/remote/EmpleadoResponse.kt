@@ -1,4 +1,4 @@
-package com.alberto.venture_prueba.auth.data.remote
+package com.alberto.venture_prueba.home.data.remote
 
 data class EmpleadoRequest(
     val filtroEmpleado: String,

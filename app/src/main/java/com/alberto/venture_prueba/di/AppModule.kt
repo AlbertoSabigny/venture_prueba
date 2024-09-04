@@ -2,7 +2,7 @@ package com.alberto.venture_prueba.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.alberto.venture_prueba.auth.data.remote.ApiService
+import com.alberto.venture_prueba.core.data.remote.ApiService
 import com.alberto.venture_prueba.auth.data.repository.UserRepositoryImpl
 import com.alberto.venture_prueba.auth.domain.repository.UserRepository
 import com.alberto.venture_prueba.home.data.repository.EmployeeRepositoryImpl

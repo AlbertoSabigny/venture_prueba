@@ -1,6 +1,44 @@
-#Prueba ¡
+# Prueba Técnica: Login y Listado de Empleados
 
-Desarrollo Prueba tecnica
+## Descripción del Proyecto
+
+Esta aplicación Android es una prueba técnica que implementa un  login y visualización de empleados. 
+Utiliza Retrofit para realizar llamadas API, maneja tokens de autenticación y presenta una interfaz de usuario con las siguientes características principales:
+
+- Pantalla de login
+- Autenticación mediante API usando Retrofit y POST
+- Almacenamiento del token de autenticación
+- Pantalla principal con listado de empleados
+- Obtención de datos de empleados mediante API autenticada (POST)
+- Menú de barra lateral
+
+## Características
+
+### 1. Login
+
+- Interfaz de usuario para ingreso de credenciales
+- Manejo de errores y mensajes de respuesta
+- Almacenamiento del token de autenticación
+
+### 2. Listado de Empleados
+
+- Visualización de empleados en formato de lista
+- Obtención de datos mediante API 
+
+### 3. Menú Lateral
+
+- Implementación de ModalNavigationDrawer de Jetpack Compose
+
+## Tecnologías Utilizadas
+
+- Kotlin
+- Jetpack Compose para la interfaz de usuario
+- Retrofit para llamadas API
+- ModalNavigationDrawer para el menú lateral
+- ViewModel y StateFlow para la arquitectura MVVM
+- Coroutines para operaciones asíncronas
+
+## Capturas de Pantalla
 
 
 Login             |  Dialogo
